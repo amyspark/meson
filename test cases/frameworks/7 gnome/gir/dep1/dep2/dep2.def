@@ -1,0 +1,4 @@
+EXPORTS
+    meson_dep2_new
+    meson_dep2_return_message
+    meson_dep2_get_type

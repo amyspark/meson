@@ -1,0 +1,4 @@
+EXPORTS
+    meson_sample_new
+    meson_sample_print_message
+    meson_sample_get_type

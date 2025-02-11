@@ -17,6 +17,7 @@ girlib = shared_library(
   sources : libsources,
   c_args: '-DMESON_TEST_2',
   dependencies : [gobj, dep1_dep],
+  vs_module_defs: 'meson-sample.def',
   install : true
 )
 
@@ -24,6 +25,7 @@ girlib2 = shared_library(
   'gir_lib2',
   sources : lib2sources,
   dependencies : [gobj],
+  vs_module_defs: 'meson-sample2.def',
   install : true
 )
 
@@ -54,6 +56,9 @@ girexe = executable(
 
 fake_dep = dependency('no-way-this-exists', required: false)
 
+envdata.append('GI_TYPELIB_PATH', girlib.outdir())
+envdata.append(var, girlib.outdir())
+
 # g-ir-scanner ignores CFLAGS for MSVC
 flags_dep_for_msvc = declare_dependency(
   compile_args: ['-DMESON_TEST_2']
@@ -72,6 +77,7 @@ endif
 gnome.generate_gir(
   girs,
   sources : girs_sources,
+  env : envdata,
   nsversion : '1.0',
   namespace : 'Meson',
   symbol_prefix : 'meson',
@@ -83,12 +89,5 @@ gnome.generate_gir(
 )
 
 test('gobject introspection/c', girexe)
-gir_paths = ':'.join([girlib.outdir(), dep1lib.outdir(), dep2lib.outdir(), dep3lib.outdir()])
-envdata = environment()
-envdata.append('GI_TYPELIB_PATH', gir_paths, separator : ':')
-envdata.append('LD_LIBRARY_PATH', gir_paths)
-if ['windows', 'cygwin'].contains(host_machine.system())
-  envdata.append('PATH', gir_paths)
-endif
 test('gobject introspection/py', find_program('prog.py'),
      env : envdata)

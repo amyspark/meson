@@ -4,12 +4,17 @@ dep2lib = shared_library(
   'dep2lib',
   sources : dep2sources,
   dependencies : gobj,
+  vs_module_defs: 'dep2.def',
   install : true
 )
+
+envdata.append('GI_TYPELIB_PATH', dep2lib.outdir())
+envdata.append(var, dep2lib.outdir())
 
 dep2gir = gnome.generate_gir(
   dep2lib,
   sources : dep2sources,
+  env : envdata,
   nsversion : '1.0',
   namespace : 'MesonDep2',
   symbol_prefix : 'meson',

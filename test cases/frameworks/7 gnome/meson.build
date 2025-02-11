@@ -44,7 +44,7 @@ endif
 
 gnome = import('gnome')
 gio = dependency('gio-2.0')
-giounix = dependency('gio-unix-2.0')
+giounix = dependency('gio-unix-2.0', required: host_machine.system() != 'windows', disabler: true)
 glib = dependency('glib-2.0')
 gobj = dependency('gobject-2.0')
 gir = dependency('gobject-introspection-1.0')
@@ -61,6 +61,35 @@ endif
 
 # Test that static deps don't error out when static libraries aren't found
 glib_static = dependency('glib-2.0', static : true)
+
+
+envdata = environment()
+if ['darwin', 'ios'].contains(host_machine.system())
+  var = 'DYLD_LIBRARY_PATH'
+elif ['windows', 'cygwin'].contains(host_machine.system())
+  var = 'PATH'
+else
+  var = 'LD_LIBRARY_PATH'
+endif
+
+current_library_path = run_command(
+  [
+    py3,
+    '-c',
+    'import os; print(os.environ["@0@"]) if "@0@" in os.environ else ""'.format(var)
+  ],
+  capture: true,
+  check: true,
+).stdout().strip()
+if current_library_path != ''
+  envdata.set(var, current_library_path)
+endif
+if ['windows', 'cygwin'].contains(host_machine.system())
+  bindir = gir.get_variable(pkgconfig: 'bindir', default_value: '')
+  if bindir != ''
+    envdata.prepend(var, bindir)
+  endif
+endif
 
 subdir('resources-data')
 subdir('resources')
